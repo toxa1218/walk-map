@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Карта Прогулок</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { margin: 0; padding: 0; }
+        #map { width: 100%; height: 100vh; }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<script>
+    // Инициализация Telegram WebApp
+    const tg = window.Telegram.WebApp;
+    tg.expand(); // Раскрыть на весь экран
+
+    // Инициализация карты (центр по умолчанию - Москва, но он сдвинется)
+    const map = L.map('map').setView([55.75, 37.61], 13);
+
+    // Добавляем слой карты (OpenStreetMap - бесплатно)
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Функция получения данных из URL
+    function getParams() {
+        const params = new URLSearchParams(window.location.search);
+        const data = params.get('data');
+        return data ? JSON.parse(decodeURIComponent(data)) : [];
+    }
+
+    // Читаем данные и ставим метки
+    const events = getParams();
+    const markers = [];
+
+    events.forEach(event => {
+        // Создаем маркер
+        const marker = L.marker([event.lat, event.lon]).addTo(map);
+        
+        // Создаем красивое описание
+        const popupContent = `
+            <b>${event.desc}</b><br>
+            ⏰ ${event.time}<br>
+            🏷 ${event.tags}<br>
+            <button onclick="sendBack(${event.id})" style="margin-top:5px; padding:5px; width:100%; cursor:pointer;">Пойти!</button>
+        `;
+        
+        marker.bindPopup(popupContent);
+        markers.push(marker);
+    });
+
+    // Если есть метки, центрируем карту, чтобы показать их все
+    if (markers.length > 0) {
+        const group = new L.featureGroup(markers);
+        map.fitBounds(group.getBounds().pad(0.1));
+    }
+
+    // Функция отправки данных обратно боту (при нажатии "Пойти")
+    function sendBack(eventId) {
+        // Отправляем данные боту
+        tg.sendData(JSON.stringify({action: "join", id: eventId}));
+        tg.close(); // Закрываем карту
+    }
+</script>
+
+</body>
+</html>
