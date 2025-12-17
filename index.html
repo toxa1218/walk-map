@@ -54,7 +54,12 @@
             });
             
             // Отправляем данные боту
-            tg.sendData(data); 
+            function sendJoin(eventId) {
+    // Замените YOUR_BOT_USERNAME на реальный юзернейм бота без @
+    const botUsername = "MySuperWalkerBot"; 
+    // Открываем ссылку
+    window.location.href = `https://t.me/${botUsername}?start=join_${eventId}`;
+} 
             
             // Закрываем окно (иногда помогает, хотя sendData должен сам закрывать)
             // tg.close(); 
@@ -62,3 +67,4 @@
     </script>
 </body>
 </html>
+
